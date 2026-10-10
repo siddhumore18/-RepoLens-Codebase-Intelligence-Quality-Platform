@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  ai-model:
+    build:
+      context: ./AI_Model
+      dockerfile: Dockerfile
+    container_name: repolens-ai-model
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    networks:
+      - repolens-network
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: repolens-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - AI_SERVICE_URL=http://ai-model:5000
+    depends_on:
+      - ai-model
+    restart: unless-stopped
+    networks:
+      - repolens-network
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: repolens-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - repolens-network
+
+networks:
+  repolens-network:
+    driver: bridge
